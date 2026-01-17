@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="https://tc.z.wiki/autoupload/f/96HSXQ-bcRzpZ_KNMtVLD9iO_OyvX7mIgxFBfDMDErs/20250714/2B4I/1080X1080/E29200B3F1C7AE3F5105A036A4744266_0.jpg" type="image/png">
+    <title>个人主页</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* 搜索按钮样式 */
+        .search-btn {
+            position: fixed;
+            top: 12px;
+            right: 12px;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 100;
+            transition: all 0.3s ease;
+            background: none;
+            border: none;
+            outline: none;
+        }
+        .search-btn svg {
+            width: 20px;
+            height: 20px;
+            stroke: white;
+            stroke-width: 2.5;
+            transition: all 0.3s ease;
+            filter: drop-shadow(0 2px 3px rgba(0,0,0,0.3));
+        }
+        .search-btn:hover svg {
+            transform: scale(1.1);
+            stroke: var(--secondary-color);
+        }
+
+        /* 搜索框样式 */
+        .search-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            z-index: 999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .search-box {
+            width: 80%;
+            max-width: 600px;
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transform: translateY(-20px);
+            transition: transform 0.3s ease;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 12px 15px;
+            font-size: 16px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        
+        .search-input:focus {
+            border-color: var(--primary-color);
+        }
+        
+        .search-results {
+            margin-top: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .search-result-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .search-result-item:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .search-result-item h3 {
+            margin: 0;
+            font-size: 16px;
+            color: #333;
+        }
+        
+        .search-result-item p {
+            margin: 5px 0 0;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .no-results {
+            padding: 15px;
+            text-align: center;
+            color: #666;
+        }
+        
+        .close-search {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: white;
+            cursor: pointer;
+        }
+
+        @font-face {
+            font-family: 'CustomFont';
+            src: url('ziti.woff') format('woff');
+        }
+        :root {
+            --primary-color: #ff4d4d;
+            --secondary-color: #f9cb28;
+            --text-dark: #333;
+            --text-light: #fff;
+            --text-gray: #666;
+            --bg-light: #f8f8f8;
+            --glass-effect: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', 'CustomFont', sans-serif;
+        }
+        body {
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            overflow-x: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        .container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            overflow-x: hidden;
+            position: relative;
+            z-index: 5;
+        }
+        
+        /* 樱花特效容器 */
+        #sakura-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 2; /* 确保在封面之上但低于内容 */
+            overflow: hidden;
+        }
+        
+        /* 樱花元素样式 */
+        .sakura {
+            position: absolute;
+            top: -50px;
+            font-size: 24px;
+            pointer-events: none;
+            user-select: none;
+            opacity: 0.85; /* 提高透明度 */
+            color: #ff69b4; /* 更鲜艳的粉色 */
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.7);
+            animation: fall linear infinite;
+        }
+        
+        /* 樱花飘落动画 */
+        @keyframes fall {
+            0% {
+                transform: translateY(0) translateX(0) rotate(0deg);
+                opacity: 0.3;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 0.7;
+            }
+            100% {
+                transform: translateY(105vh) translateX(20px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        .profile-header {
+            position: relative;
+            height: 10vh;
+            min-height: 230px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 0.8s ease-out;
+            touch-action: pan-y;
+        }
+        .bg-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            filter: brightness(0.7);
+            transition: transform 0.8s cubic-bezier(0.25, 0.1, 0.25, 1);
+            z-index: 1;
+            will-change: transform;
+        }
+        .profile-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.5) 100%);
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 10px 15px 15px;
+            color: var(--text-light);
+        }
+        .profile-content {
+            position: relative;
+            z-index: 3;
+            display: flex;
+            align-items: flex-end;
+            gap: 12px;
+            animation: slideUp 0.8s ease-out 0.2s both;
+            margin-top: -5px;
+        }
+        .avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            object-fit: cover;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            top: -7px;
+        }
+        .avatar:hover {
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.4);
+        }
+        .profile-info {
+            flex: 1;
+            margin-bottom: 0;
+            padding-bottom: 5px;
+        }
+        .username {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 0;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            letter-spacing: 0.3px;
+            line-height: 1.2;
+            display: inline-block;
+        }
+        .user-id {
+            font-size: 12px;
+            opacity: 0.8;
+            margin: 1px 0;
+            font-weight: 400;
+            line-height: 1.2;
+        }
+        .bio {
+            font-size: 11px;
+            line-height: 1.3;
+            margin: 3px 0 0;
+            max-width: 600px;
+            opacity: 0.9;
+            background: var(--glass-effect);
+            padding: 8px 10px;
+            border-radius: 6px;
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            animation: fadeIn 1s ease-out 0.4s both;
+            cursor: pointer;
+        }
+        .main-content {
+            padding: 15px;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+            flex: 1;
+            background-color: var(--bg-light);
+            border-radius: 20px 20px 0 0;
+            transform: translateY(-14px);
+            position: relative;
+            z-index: 4;
+            box-shadow: 0 -8px 25px rgba(0, 0, 0, 0.05);
+        }
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            position: relative;
+            display: inline-block;
+            color: var(--text-dark);
+        }
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 30px;
+            height: 2px;
+            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+            border-radius: 2px;
+        }
+        .resources-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 12px;
+            width: 100%;
+        }
+        @media (min-width: 768px) {
+            .resources-grid {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 12px;
+            }
+            .bio {
+                max-width: 800px;
+            }
+        }
+        .resource-card {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.5s ease-out forwards;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        .resource-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255,77,77,0.1) 0%, rgba(249,203,40,0.1) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .resource-card:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+        .resource-card:hover::before {
+            opacity: 1;
+        }
+        .resource-image {
+            width: 100%;
+            height: 130px;
+            object-fit: cover;
+            transition: transform 0.6s cubic-bezier(0.25, 0.1, 0.25, 1);
+        }
+        .resource-card:hover .resource-image {
+            transform: scale(1.1);
+        }
+        .resource-info {
+            padding: 10px;
+            position: relative;
+            z-index: 1;
+            background: white;
+        }
+        .resource-name {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: var(--text-dark);
+            line-height: 1.2;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .resource-desc {
+            font-size: 11px;
+            color: var(--text-gray);
+            line-height: 1.3;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .no-resources {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 25px 15px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            animation: fadeIn 0.5s ease-out;
+        }
+        .no-resources-icon {
+            font-size: 36px;
+            margin-bottom: 8px;
+            color: var(--primary-color);
+            animation: float 3s ease-in-out infinite;
+        }
+        .no-resources-text {
+            font-size: 13px;
+            color: var(--text-gray);
+        }
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 12px;
+            grid-column: 1 / -1;
+        }
+        .spinner {
+            width: 22px;
+            height: 22px;
+            border: 3px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top-color: var(--primary-color);
+            animation: spin 1s ease-in-out infinite;
+        }
+        .back-btn {
+            position: fixed;
+            top: 12px;
+            left: 12px;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 100;
+            transition: all 0.3s ease;
+            background: none;
+            border: none;
+            outline: none;
+        }
+        .back-btn svg {
+            width: 20px;
+            height: 20px;
+            stroke: white;
+            stroke-width: 2.5;
+            transition: all 0.3s ease;
+            filter: drop-shadow(0 2px 3px rgba(0,0,0,0.3));
+        }
+        .back-btn:hover svg {
+            transform: translateX(-3px);
+            stroke: var(--secondary-color);
+        }
+        .toast {
+            position: fixed;
+            top: 12px;
+            right: 12px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 8px 14px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            transform: translateX(100%);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 13px;
+        }
+        .toast.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeInUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-6px); }
+            100% { transform: translateY(0px); }
+        }
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.7);
+            transform: scale(0);
+            animation: ripple 0.6s linear;
+            pointer-events: none;
+        }
+        @keyframes ripple {
+            to { transform: scale(2.5); opacity: 0; }
+        }
+        /* 底线提示样式 */
+        .bottom-line {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 15px;
+            color: #999;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .bottom-line:hover {
+            color: var(--primary-color);
+        }
+    </style>
+</head>
+<body>
+<button class="search-btn" id="search-btn">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"></circle>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+    </svg>
+</button>
+
+<!-- 搜索框容器 -->
+<div class="search-container" id="search-container">
+    <button class="close-search" id="close-search">&times;</button>
+    <div class="search-box">
+        <input type="text" class="search-input" id="search-input" placeholder="搜索资源名称或描述..." autocomplete="off">
+        <div class="search-results" id="search-results"></div>
+    </div>
+</div>
+
+    <!-- 樱花特效容器 - 放在最顶部保证不被遮挡 -->
+    <div id="sakura-container"></div>
+    
+    <div class="container" id="main-container">
+        <button class="back-btn" id="back-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+        </button>
+        <div class="profile-header" id="profile-header">
+            <div class="bg-image" id="bg-image" style="background-image: url('https://z.wiki/u/Pe7s0W')"></div>
+            <div class="profile-overlay">
+                <div class="profile-content">
+                    <img src="https://z.wiki/u/xOYU9f" alt="Avatar" class="avatar" id="user-avatar">
+                    <div class="profile-info">
+                        <div>
+                            <h1 class="username" id="username">你的竹烬呀</h1>
+                        </div>
+                        <div class="user-id" id="user-id">ID: 3310607939</div>
+                        <div class="bio" id="user-bio">不必不懂装作懂，因为懂你永远都是你自己  ————竹烬</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="main-content">
+            <h2 class="section-title">Ta的资源 (<span id="resource-count-title">6</span>)</h2>
+            <div class="resources-grid" id="resources-grid">
+                <div class="resource-card" onclick="window.location.href='https://lsjojj{$rthSuffix}/yeimian/1/index.html'">
+                    <img src="tp/index.jpg" alt="资源图片" class="resource-image">
+                    <div class="resource-info">
+                        <h3 class="resource-name">站长所有联系方式及粉丝群</h3>
+                        <p class="resource-desc">点击查看详情</p>
+                    </div>
+                </div>
+                <div class="resource-card" onclick="window.location.href='https://lsjojj{$rthSuffix}/yeimian/2/index.html'">
+                    <img src="tp/index.jpg" alt="资源图片" class="resource-image">
+                    <div class="resource-info">
+                        <h3 class="resource-name">在线万能工具</h3>
+                        <p class="resource-desc">点击查看详情</p>
+                    </div>
+                </div>
+                <div class="resource-card" onclick="window.location.href='https://lsjojj{$rthSuffix}/yeimian/3/index.html'">
+                    <img src="tp/index.jpg" alt="资源图片" class="resource-image">
+                    <div class="resource-info">
+                        <h3 class="resource-name">友链</h3>
+                        <p class="resource-desc">点击查看详情</p>
+                    </div>
+                </div>
+                <div class="resource-card" onclick="window.location.href='https://lsjojj{$rthSuffix}/yeimian/4/index.html'">
+                    <img src="tp/index.jpg" alt="资源图片" class="resource-image">
+                    <div class="resource-info">
+                        <h3 class="resource-name">每月免费流量</h3>
+                        <p class="resource-desc">点击查看详情</p>
+                    </div>
+                </div>
+                 <div class="resource-card" onclick="window.location.href='https://lsjojj{$rthSuffix}/yeimian/5/index.html'">
+                    <img src="tp/index.jpg" alt="资源图片" class="resource-image">
+                    <div class="resource-info">
+                        <h3 class="resource-name">好用的免费AI聊天软件</h3>
+                        <p class="resource-desc">点击查看详情</p>
+                    </div>
+                </div>
+                <div class="resource-card" onclick="window.location.href='https://lsjojj{$rthSuffix}/yeimian/6/index.html'">
+                    <img src="tp/index.jpg" alt="资源图片" class="resource-image">
+                    <div class="resource-info">
+                        <h3 class="resource-name">智能AI助手(已接入各大模型）</h3>
+                        <p class="resource-desc">点击查看详情</p>
+                    </div>
+                </div>
+                <div class="resource-card" onclick="window.location.href='https://lsjojj{$rthSuffix}/yeimian/7/index.html'">
+                    <img src="tp/index.jpg" alt="资源图片" class="resource-image">
+                    <div class="resource-info">
+                        <h3 class="resource-name">和平精英强开120帧</h3>
+                        <p class="resource-desc">点击查看详情</p>
+                    </div>
+                </div>
+                <div class="resource-card" onclick="window.location.href='https://lsjojj{$rthSuffix}/yeimian/8/index.html'">
+                    <img src="tp/index.jpg" alt="资源图片" class="resource-image">
+                    <div class="resource-info">
+                        <h3 class="resource-name">图片转符号</h3>
+                        <p class="resource-desc">点击查看详情</p>
+                    </div>
+                </div>
+                <div class="resource-card" onclick="window.location.href='https://lsjojj{$rthSuffix}/yeimian/9/index.html'">
+                    <img src="tp/index.jpg" alt="资源图片" class="resource-image">
+                    <div class="resource-info">
+                        <h3 class="resource-name">毒蘑菇测试性能</h3>
+                        <p class="resource-desc">点击查看详情</p>
+                    </div>
+                </div>
+                <div class="resource-card" onclick="window.location.href='https://lsjojj{$rthSuffix}/yeimian/10/index.html'">
+                    <img src="tp/index.jpg" alt="资源图片" class="resource-image">
+                    <div class="resource-info">
+                        <h3 class="resource-name">高清3d可以看到房子地图</h3>
+                        <p class="resource-desc">点击查看详情</p>
+                    </div>
+                </div>
+                <div class="bottom-line">—— 我也是有底线的 ——</div>
+            </div>
+        </div>
+        <div class="toast" id="toast"></div>
+    </div>
+
+<script charset="UTF-8" id="LA_COLLECT" src="//sdk.51.la/js-sdk-pro.min.js"></script>
+<script>LA.init({id:"3NFv17Kcxmgjt0At",ck:"3NFv17Kcxmgjt0At"})</script>
+    <script>
+        // ================= 增强版樱花特效 =================
+        function createSakura() {
+            const sakura = document.createElement('div');
+            sakura.className = 'sakura';
+            sakura.innerHTML = '❀'; // 樱花字符
+            
+            // 随机化参数（确保更明显的视觉效果）
+            const left = Math.random() * window.innerWidth;
+            const duration = 8 + Math.random() * 12; // 8-20秒飘落时间
+            const delay = Math.random() * 3; // 0-3秒延迟
+            const size = 18 + Math.random() * 25; // 18-43px大小
+            
+            // 添加随机的水平移动
+            const xOffset = (Math.random() - 0.5) * 60; 
+            
+            // 应用样式
+            sakura.style.left = `${left}px`;
+            sakura.style.fontSize = `${size}px`;
+            sakura.style.animation = `fall ${duration}s linear ${delay}s infinite`;
+            sakura.style.setProperty('--x-offset', `${xOffset}px`);
+            
+            // 添加到容器
+            document.getElementById('sakura-container').appendChild(sakura);
+            
+            // 动画结束后移除元素（优化内存）
+            sakura.addEventListener('animationend', () => {
+                sakura.remove();
+            });
+        }
+
+        // 初始化樱花特效
+        function initSakuraEffect() {
+            // 首次创建50朵（提高密度）
+            for (let i = 0; i < 50; i++) {
+                setTimeout(createSakura, i * 200);
+            }
+            // 每0.5秒补充新樱花
+            setInterval(createSakura, 500);
+        }
+
+        // ================= 搜索功能实现 =================
+        function initSearch() {
+            const searchBtn = document.getElementById('search-btn');
+            const searchContainer = document.getElementById('search-container');
+            const closeSearch = document.getElementById('close-search');
+            const searchInput = document.getElementById('search-input');
+            const searchResults = document.getElementById('search-results');
+            
+            // 打开搜索框
+            searchBtn.addEventListener('click', function() {
+                searchContainer.style.display = 'flex';
+                setTimeout(() => {
+                    searchContainer.style.opacity = '1';
+                    searchInput.focus();
+                }, 10);
+            });
+            
+            // 关闭搜索框
+            closeSearch.addEventListener('click', function() {
+                searchContainer.style.opacity = '0';
+                setTimeout(() => {
+                    searchContainer.style.display = 'none';
+                    searchInput.value = '';
+                    searchResults.innerHTML = '';
+                }, 300);
+            });
+            
+            // 搜索功能
+            searchInput.addEventListener('input', function() {
+                const query = this.value.trim().toLowerCase();
+                searchResults.innerHTML = '';
+                
+                if (query === '') return;
+                
+                // 获取所有资源卡片
+                const resourceCards = document.querySelectorAll('.resource-card');
+                let foundResults = false;
+                
+                resourceCards.forEach(card => {
+                    const name = card.querySelector('.resource-name').textContent.toLowerCase();
+                    const desc = card.querySelector('.resource-desc').textContent.toLowerCase();
+                    
+                    if (name.includes(query) || desc.includes(query)) {
+                        foundResults = true;
+                        
+                        // 创建搜索结果项
+                        const resultItem = document.createElement('div');
+                        resultItem.className = 'search-result-item';
+                        resultItem.innerHTML = `
+                            <h3>${card.querySelector('.resource-name').textContent}</h3>
+                            <p>${card.querySelector('.resource-desc').textContent}</p>
+                        `;
+                        
+                        // 点击搜索结果跳转到对应卡片
+                        resultItem.addEventListener('click', function() {
+                            card.click();
+                            searchContainer.style.opacity = '0';
+                            setTimeout(() => {
+                                searchContainer.style.display = 'none';
+                                searchInput.value = '';
+                                searchResults.innerHTML = '';
+                            }, 300);
+                        });
+                        
+                        searchResults.appendChild(resultItem);
+                    }
+                });
+                
+                if (!foundResults) {
+                    searchResults.innerHTML = '<div class="no-results">没有找到匹配的资源</div>';
+                }
+            });
+            
+            // 按ESC键关闭搜索框
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && searchContainer.style.display === 'flex') {
+                    searchContainer.style.opacity = '0';
+                    setTimeout(() => {
+                        searchContainer.style.display = 'none';
+                        searchInput.value = '';
+                        searchResults.innerHTML = '';
+                    }, 300);
+                }
+            });
+        }
+
+        // ================= 页面原有功能 =================
+        // 背景图拖动效果
+        const profileHeader = document.getElementById('profile-header');
+        const bgImage = document.getElementById('bg-image');
+        let startY = 0;
+        let currentY = 0;
+        let isDragging = false;
+
+        profileHeader.addEventListener('touchstart', (e) => {
+            startY = e.touches[0].clientY;
+            isDragging = true;
+            bgImage.style.transition = 'none';
+        }, { passive: true });
+
+        profileHeader.addEventListener('touchmove', (e) => {
+            if (!isDragging) return;
+            currentY = e.touches[0].clientY;
+            const diff = currentY - startY;
+            if (diff > 0) {
+                const scale = 1 + (diff / 1000);
+                bgImage.style.transform = `scale(${scale}) translateY(${diff/2}px)`;
+            }
+        }, { passive: true });
+
+        profileHeader.addEventListener('touchend', () => {
+            isDragging = false;
+            bgImage.style.transform = 'scale(1) translateY(0)';
+            bgImage.style.transition = 'transform 0.5s ease-out';
+            setTimeout(() => {
+                bgImage.style.transition = 'transform 0.8s cubic-bezier(0.25, 0.1, 0.25, 1)';
+            }, 500);
+        }, { passive: true });
+
+        // 返回按钮功能
+        document.getElementById('back-btn').addEventListener('click', function() {
+            window.location.href = 'source.php?uid=116800&uname=xiaoxun1';
+        });
+
+        // 简介点击刷新
+        document.getElementById('user-bio').addEventListener('click', function() {
+            fetch('https://v.api.aa1.cn/api/yiyan/index.php')
+                .then(response => response.text())
+                .then(html => {
+                    this.innerHTML = html;
+                })
+                .catch(error => {
+                    this.textContent = '这个人很懒，什么都没有留下~';
+                });
+        });
+
+        // 资源卡片点击效果
+        document.querySelectorAll('.resource-card').forEach(card => {
+            card.addEventListener('click', function(e) {
+                const ripple = document.createElement('span');
+                ripple.className = 'ripple';
+                const rect = this.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                ripple.style.left = `${x}px`;
+                ripple.style.top = `${y}px`;
+                this.appendChild(ripple);
+                setTimeout(() => {
+                    ripple.remove();
+                }, 600);
+            });
+        });
+
+        // 页面加载后启动樱花特效和搜索功能
+        window.addEventListener('DOMContentLoaded', function() {
+            initSakuraEffect();
+            initSearch();
+            
+            // 预加载资源
+            const preloadImages = [
+                'https://z.wiki/u/Pe7s0W',
+                'https://z.wiki/u/xOYU9f',
+                'tp/index.jpg'
+            ];
+            
+            preloadImages.forEach(url => {
+                const img = new Image();
+                img.src = url;
+            });
+        });
+    </script>
+</body>
+</html>
